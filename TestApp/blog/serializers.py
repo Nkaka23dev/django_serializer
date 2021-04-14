@@ -1,45 +1,41 @@
 from rest_framework import serializers
-from rest_framework.renderers import JSONRenderer
-from .models import User
+from .models import Posts
 
-# class Person:
-#    def __init__(self,first_name,last_name):
-#       self.first_name=first_name
-#       self.last_name=last_name
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Posts
+        fields=['id','title','content','posted_date']
 
-# def no_more_than_2_char(value):
-#    if len(value)<2:
-#       raise serializers.ValidationError("Not less than 2 characters.")
-#    return value
+    def create(self,validated_data):
+        return Posts.objects.create(**validated_data)   
 
-# class Serializer(serializers.Serializer):
-#    first_name=serializers.CharField(max_length=200,validators=[no_more_than_2_char])
-#    last_name=serializers.CharField(max_length=200)
+    def update(self,instance,validate_data):
+        instance.title=validate_data.get('title',instance.title)
+        instance.content=validate_data.get('title',instance.title)
+        instance.save()
+        return instance
 
-#    def validate_first_name(self,value):
-#       if len(value)>5:
-#          raise serializers.ValidationError("First name should not exceed 5 charcters")
-#       return value 
+class Person:
+    def __init__(self,fname,lname):
+        self.fname=fname
+        self.lname=lname
 
-#    def validate(self,data):
-#       if data.get("first_name").startswith("#") or data.get("last_name").startswith("#"):
-#          raise serializers.ValidationError("Name should not start with #")
-#       return data
+def not_less_than_2(value):
+    if len(value)<3:
+        raise serializers.ValidationError("User name should not be less than 3 characters")
+    return value
 
+class PersonSerializer(serializers.Serializer):
+    fname=serializers.CharField(max_length=100,validators=[not_less_than_2])
+    lname=serializers.CharField(max_length=150)
 
-class UserSerializer(serializers.ModelSerializer):
-   class Meta:
-      model=User
-      fields="__all__"
+    def validate_fname(self,value):
+        if len(value)>6:
+            raise serializers.ValidationError("User name should not be greater than 6 characters")
+        return value
 
-   def create(self,validated_data):
-      return User.objects.create(**validated_data)
-
-   def update(self,instance,validated_data):
-      instance.name=validated_data.get('title',instance.name)
-      instance.email=validated_data.get('email',instance.email)
-      instance.desc=validated_data.get('desc',instance.desc)
-      instance.save()
-      return instance
-
+    def validate(self,data):
+        if data.get('fname').startswith('#') or data.get('lname').startswith('#'):
+            raise serializers.ValidationError("Name should not start with #.")
+        return data
 
